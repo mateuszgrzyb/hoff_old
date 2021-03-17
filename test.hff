@@ -1,0 +1,15 @@
+
+const ala: Float = 1 + 1
+
+fun something(i: Float, y: Float): Float {
+    let
+        const ala: String = if y then 1 else y fi
+        fun blabla(): String { yy }
+    in 
+        if blabla() then
+            28.9
+        else
+            29.8
+        fi
+    tel
+}
