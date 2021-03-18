@@ -9,7 +9,7 @@
 let digit = ['0'-'9']
 let upper = ['A'-'Z']
 let lower = ['a'-'z'] 
-let special = ['_' '-' '`']
+let special = ['_' '`']
 
 let num = digit+ ('.' digit*)?
 
@@ -42,6 +42,16 @@ rule read = parse
    | "-"       { SUB }
    | "*"       { MUL }
    | "/"       { DIV }
+
+   | "&&"      { AND }
+   | "||"      { OR }
+   | "=="      { EQ }
+   | "!="      { NE }
+
+   | "<"       { LT }
+   | "<="      { LE }
+   | ">="      { GE }
+   | ">"       { GT }
 
    | "fun"     { FUN }
    | "const"   { CONST }

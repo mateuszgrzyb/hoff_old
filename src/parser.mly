@@ -16,6 +16,12 @@
 
 %token ADD SUB MUL DIV
 
+%token AND OR EQ NE
+%token LT LE GE GT
+
+%left AND OR
+%left EQ NE
+%left LT LE GE GT
 %left ADD SUB
 %left MUL DIV
 %right NEG
@@ -67,10 +73,22 @@ expr:
   | IF expr THEN expr ELSE expr FI { If ($2, $4, $6) }
   | LET decls IN expr TEL { Let ($2, $4) }
   | LC expr RC { $2 }
+  
   | expr ADD expr { BinOp ($1, "+", $3) }
   | expr SUB expr { BinOp ($1, "-", $3) }
   | expr MUL expr { BinOp ($1, "*", $3) }
   | expr DIV expr { BinOp ($1, "/", $3) }
+  
+  | expr AND expr { BinOp ($1, "&&", $3) }
+  | expr OR expr  { BinOp ($1, "||", $3) }
+  | expr EQ expr  { BinOp ($1, "==", $3) }
+  | expr NE expr  { BinOp ($1, "!=", $3) }
+
+  | expr LT expr  { BinOp ($1, "<", $3) }
+  | expr LE expr  { BinOp ($1, "<=", $3) }
+  | expr GE expr  { BinOp ($1, ">=", $3) }
+  | expr GT expr  { BinOp ($1, ">", $3) }
+
   | NUM { Num $1 }
   | ID { Const $1 }
   | ID LC exprs RC { Fun ($1, $3) }
@@ -79,8 +97,8 @@ expr:
 exprs:
   | expr COMMA exprs { $1 :: $3 }
   | expr { $1 :: [] }
-  | { [] }
-  ; 
+  | { [] } 
+  ;
 
 // decl_t
 

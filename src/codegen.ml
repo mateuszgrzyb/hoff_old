@@ -25,6 +25,7 @@ object (self)
   val context = c
   val double_t = Llvm.double_type c
   val local_variables = Hashtbl.create 10
+  val local_functions = Hashtbl.create 10
 
   method generate = match ast with
     | Mod (_, decl) ->
@@ -48,13 +49,6 @@ object (self)
       Llvm.set_value_name name arg;
       Hashtbl.add local_variables name arg
     ) (zip args (Array.to_list (Llvm.params f)));
-    (*
-    Array.iteri (fun i arg ->
-      let name = args.(i) in
-      Llvm.set_value_name name arg;
-      Hashtbl.add local_variables name arg;
-    ) (Llvm.params f);
-    *)
 
     let bb = Llvm.append_block context "entry" f in
 
@@ -142,11 +136,23 @@ object (self)
     let lh_value = self#generate_expr lh in
     let rh_value = self#generate_expr rh in
     match op with
+ 
     | "+" -> Llvm.build_fadd lh_value rh_value "addexpr" builder 
     | "-" -> Llvm.build_fsub lh_value rh_value "subexpr" builder
     | "*" -> Llvm.build_fmul lh_value rh_value "mulexpr" builder
     | "/" -> Llvm.build_fdiv lh_value rh_value "divexpr" builder
-    | _ -> raise (BadOperator ("Unknown operator:"))
+ 
+    | "<"  -> Llvm.build_fadd lh_value rh_value "ltexpr" builder 
+    | "<=" -> Llvm.build_fsub lh_value rh_value "leexpr" builder
+    | ">=" -> Llvm.build_fmul lh_value rh_value "geexpr" builder
+    | ">"  -> Llvm.build_fdiv lh_value rh_value "gtexpr" builder
+ 
+    | "&&" -> Llvm.build_fadd lh_value rh_value "andexpr" builder 
+    | "||" -> Llvm.build_fsub lh_value rh_value "orexpr" builder
+    | "==" -> Llvm.build_fmul lh_value rh_value "eqexpr" builder
+    | "!=" -> Llvm.build_fdiv lh_value rh_value "neexpr" builder
+
+    | any -> raise (BadOperator ("Unknown operator: " ^ any))
 
   (*
   method private generate_lambda args body = llvm_none
