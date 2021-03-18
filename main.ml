@@ -1,30 +1,4 @@
 
-(*
-
-
-let lexer () = 
-  print_endline "Enter filename:";
-
-  let filename = read_line () in
-  let inx = Core.In_channel.create filename in
-  let lexbuf = Lexing.from_channel inx in
-
-  print_endline "start";
- 
-  try
-    while true do
-      print_endline (Lexer.debug lexbuf);
-    done;
-  with Lexer.EndLoop -> ();
-
-  print_endline "end"
-
-*)
-
-let parse (inx: in_channel) (name: string): Ast.module_t = 
-  let lexbuf = Lexing.from_channel inx in
-  let decls = Parser.decls Lexer.read lexbuf in
-  Ast.Mod (name, decls)
 
 let main () = 
 
@@ -38,8 +12,13 @@ let main () =
   ignore (Parser.decls Lexer.read lexbuf)
   *)
 
-  let module_ = Ast.Mod ("test", Parser.decls Lexer.read lexbuf) in
+  let m = Ast.Mod ("test", Parser.g_decls Lexer.read lexbuf) in
+  let gen = new Codegen.codegen m in
+  let code = gen#generate in
+  print_endline (code)
+  (*
   print_endline (Ast.show_module_t module_)
+  *)
 
     
 let () = main ()

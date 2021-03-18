@@ -4,10 +4,9 @@
 %}
 
 %token <string> ID
-%token <string> TID
 %token <float> NUM
 
-%token COLON ASSIGN
+%token ASSIGN
 %token LC RC
 %token LM RM
 
@@ -23,10 +22,10 @@
 
 %token EOF
 
-%type <Ast.decl_t list> decls
+%type <Ast.g_decl_t list> g_decls
 //%type <unit> decls
 
-%start decls
+%start g_decls
 %%
 
 /*
@@ -42,26 +41,25 @@ decl:
   ;
 */
 
-decls: 
-  | decl decls { $1 :: $2 }
+g_decls: 
+  | g_decl g_decls { $1 :: $2 }
   | { [] }
   ;
 
-// decl_t
+// g_decl_t
 
-decl:
-  | CONST ID COLON TID ASSIGN expr { ConstDecl ($2, $4, $6) }
-  | FUN ID LC args RC COLON TID LM expr RM { FunDecl ($2, $4, $7, $9) }
+g_decl:
+  | CONST ID ASSIGN expr { GConstDecl ($2, $4) }
+  | FUN ID LC args RC LM expr RM { GFunDecl ($2, $4, $7) }
   ;
 
-// bad
 args: 
   | arg COMMA args { $1 :: $3 }
   | arg { $1 :: [] }
   | { [] }
   ;
 
-arg: ID COLON TID { $3 } ; 
+arg: ID { $1 } ; 
 
 // expr_t
 
@@ -78,12 +76,22 @@ expr:
   | ID LC exprs RC { Fun ($1, $3) }
   ;
 
-// bad also
 exprs:
   | expr COMMA exprs { $1 :: $3 }
   | expr { $1 :: [] }
   | { [] }
   ; 
 
+// decl_t
+
+decls: 
+  | decl decls { $1 :: $2 }
+  | { [] }
+  ;
+
+decl:
+  | CONST ID ASSIGN expr { ConstDecl ($2, $4) }
+  | FUN ID LC args RC LM expr RM { FunDecl ($2, $4, $7) }
+  ;
 
 %%

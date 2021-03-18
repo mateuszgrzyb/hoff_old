@@ -1,15 +1,33 @@
 
-const ala: Float = 1 + 1
+const ala = 1 + 1
 
-fun something(i: Float, y: Float): Float {
+fun probablyValid(i, j) {
     let
-        const ala: String = if y then 1 else y fi
-        fun blabla(): String { yy }
-    in 
-        if blabla() then
-            28.9
-        else
-            29.8
-        fi
+        const bela = 2
+        const cela = bela + 3
+    in
+        bela + cela + i + j + ala
     tel
+}
+
+fun also_prob_valid(i) {
+    let
+        const c = 1
+    in
+        let
+            const cc = c+1
+        in
+            2+2*also_prob_valid(1, 1)+ ala+ i / cc + c
+        tel 
+    tel
+}
+
+fun something(i, y) {
+    if 
+        if 1 then 2 else 3 fi
+    then
+        if 4 then 5 else 6 fi
+    else
+        if 7 then 8 else 9 fi
+    fi
 }

@@ -6,9 +6,19 @@
    exception LexingError of string
 }
 
-let num = ['0'-'9']+('.' ['0'-'9']*)?
-let tid = ['A'-'Z'] ['a'-'z' 'A'-'Z' '_' '0'-'9']*
-let id = ['a'-'z' '_'] ['a'-'z' 'A'-'Z' '_' '0'-'9']*
+let digit = ['0'-'9']
+let upper = ['A'-'Z']
+let lower = ['a'-'z'] 
+let special = ['_' '-' '`']
+
+let num = digit+ ('.' digit*)?
+
+(* 
+let id = ['a'-'z' '_'] ['a'-'z' 'A'-'Z' '_' '0'-'9']* 
+*)
+
+let id = (lower | special) (upper | lower | digit | special)*
+
 let white = [' ' '\t']+
 let newline = ('\n' | '\r' | "\r\n")+
 
@@ -16,7 +26,9 @@ rule read = parse
    | white     { read lexbuf }
    | newline   { new_line lexbuf; read lexbuf }
 
+(*
    | ":"       { COLON }
+*)
    | "="       { ASSIGN }
    
    | ","       { COMMA }
@@ -44,7 +56,9 @@ rule read = parse
    | "in"      { IN }
    | "tel"     { TEL }
 
+(*
    | tid       { TID (lexeme lexbuf) }
+*)
    | id        { ID (lexeme lexbuf) }
    | num       { NUM (float_of_string (lexeme lexbuf)) }
    | _         { raise (LexingError ("Unexpected char: " ^ lexeme lexbuf)) }
