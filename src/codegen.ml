@@ -41,6 +41,7 @@ object (self)
   method generate = match ast with
     | Mod (_, decl) ->
       List.iter self#generate_g_decl decl;
+      (*Llvm_analysis.assert_valid_module module_;*)
       Llvm.string_of_llmodule module_
 
   method private generate_generic_fundecl name args body =
@@ -54,19 +55,15 @@ object (self)
     ) (zip args (Array.to_list (Llvm.params f)));
 
     let bb = Llvm.append_block context "entry" f in
-    
-    Llvm.position_at_end bb builder;
-    
+    Llvm.position_at_end bb builder;    
     let llvm_body = self#generate_expr body in
-    let new_bb = Llvm.insertion_block builder in
-    Llvm.position_at_end new_bb builder;
 
     ignore (Llvm.build_ret llvm_body builder);
-
     
     List.iter (fun arg ->
       Hashtbl.remove local_variables arg
     ) args;
+
     f
 
   method private generate_g_decl = function 
@@ -125,12 +122,16 @@ object (self)
 
 
   method private generate_let decls expr =
+    
+    let let_bb = Llvm.insertion_block builder in
+    
     List.iter (fun decl ->
       match decl with
       | ConstDecl (name, expr) -> Hashtbl.add local_variables name (self#generate_expr expr)
       | FunDecl (name, args, body) -> Hashtbl.add local_functions name (self#generate_l_fundecl args body)
     ) decls;
-    
+
+    Llvm.position_at_end let_bb builder;
     let llvm_expr = self#generate_expr expr in
 
     List.iter (fun decl ->

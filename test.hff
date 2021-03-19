@@ -40,14 +40,14 @@ fun blabla(i, j) {
     tel
 }
 
-# fun ifthenelse(i) {
-#     let
-#         fun true(i) { i + 1 }
-#         fun false(j) { j - 1 }
-#     in 
-#         if i 
-#         then true(i) 
-#         else false(i) 
-#         fi 
-#     tel
-# }
+fun ifthenelse(i) {
+    let
+        fun true(i) { i + 1 }
+        fun false(j) { j - 1 }
+    in 
+        if i 
+        then true(i) 
+        else false(i) 
+        fi 
+    tel
+}
