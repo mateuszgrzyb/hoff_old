@@ -74,24 +74,25 @@ expr:
   | LET decls IN expr TEL { Let ($2, $4) }
   | LC expr RC { $2 }
   
-  | expr ADD expr { BinOp ($1, "+", $3) }
-  | expr SUB expr { BinOp ($1, "-", $3) }
-  | expr MUL expr { BinOp ($1, "*", $3) }
-  | expr DIV expr { BinOp ($1, "/", $3) }
+  | expr ADD expr { BinOp ($1, Add, $3) }
+  | expr SUB expr { BinOp ($1, Sub, $3) }
+  | expr MUL expr { BinOp ($1, Mul, $3) }
+  | expr DIV expr { BinOp ($1, Div, $3) }
   
-  | expr AND expr { BinOp ($1, "&&", $3) }
-  | expr OR expr  { BinOp ($1, "||", $3) }
-  | expr EQ expr  { BinOp ($1, "==", $3) }
-  | expr NE expr  { BinOp ($1, "!=", $3) }
+  | expr AND expr { BinOp ($1, And, $3) }
+  | expr OR  expr { BinOp ($1, Or,  $3) }
+  | expr EQ  expr { BinOp ($1, Eq,  $3) }
+  | expr NE  expr { BinOp ($1, Ne,  $3) }
 
-  | expr LT expr  { BinOp ($1, "<", $3) }
-  | expr LE expr  { BinOp ($1, "<=", $3) }
-  | expr GE expr  { BinOp ($1, ">=", $3) }
-  | expr GT expr  { BinOp ($1, ">", $3) }
+  | expr LT expr  { BinOp ($1, Lt, $3) }
+  | expr LE expr  { BinOp ($1, Le, $3) }
+  | expr GE expr  { BinOp ($1, Ge, $3) }
+  | expr GT expr  { BinOp ($1, Gt, $3) }
 
   | NUM { Num $1 }
   | ID { Const $1 }
   | ID LC exprs RC { Fun ($1, $3) }
+  | FUN LC args RC LM expr RM { Lambda ($3, $6) }
   ;
 
 exprs:

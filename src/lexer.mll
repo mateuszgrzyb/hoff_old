@@ -22,9 +22,13 @@ let id = (lower | special) (upper | lower | digit | special)*
 let white = [' ' '\t']+
 let newline = ('\n' | '\r' | "\r\n")+
 
+let comment = '#' _
+
 rule read = parse
+
    | white     { read lexbuf }
    | newline   { new_line lexbuf; read lexbuf }
+   | comment   { read_comment lexbuf }
 
 (*
    | ":"       { COLON }
@@ -73,6 +77,12 @@ rule read = parse
    | num       { NUM (float_of_string (lexeme lexbuf)) }
    | _         { raise (LexingError ("Unexpected char: " ^ lexeme lexbuf)) }
    | eof       { EOF }
+
+and read_comment = parse
+   | newline   { new_line lexbuf; read lexbuf }
+   | eof       { EOF }
+   | _         { read_comment lexbuf }
+
 
 
 (*

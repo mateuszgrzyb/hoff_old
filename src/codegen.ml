@@ -12,35 +12,38 @@ let rec zip a b =
   | x::xs, y::ys -> (x, y)::(zip xs ys)
   | _ -> failwith "Bad lenght"
 
+class fun_name (name: string) = object
+  val name = name
+  val mutable i = 0
+  method generate =
+    let new_name = name ^ (string_of_int i) in
+    i <- i + 1;
+    new_name
+  end
 let llvm_none = Llvm.const_float (Llvm.double_type (Llvm.global_context ())) 0.0
 
 class codegen (m: module_t) = 
-let c = Llvm.global_context () in
-let name = match m with | Mod (name, _) -> name in
+let context = Llvm.global_context () in
+(*let module_name = match m with | Mod (name, _) -> name in*)
+let module_ = Llvm.create_module context (match m with | Mod (name, _) -> name) in
 object (self)
   
   val ast: module_t = m
-  val module_ = Llvm.create_module c name
-  val builder = Llvm.builder c
-  val context = c
-  val double_t = Llvm.double_type c
-  val local_variables = Hashtbl.create 10
-  val local_functions = Hashtbl.create 10
+  (*val module_ = Llvm.create_module context module_name*)
+  val builder = Llvm.builder context
+  val double_t = Llvm.double_type context
+  val module_begin = Llvm.global_begin module_
+  val local_variables: (string, Llvm.llvalue) Hashtbl.t = Hashtbl.create 10
+  val local_functions: (string, Llvm.llvalue) Hashtbl.t = Hashtbl.create 10
+  val lambda_name = new fun_name "HOFF_LAMBDA"
+  val local_name = new fun_name "HOFF_LOCAL"
 
   method generate = match ast with
     | Mod (_, decl) ->
       List.iter self#generate_g_decl decl;
       Llvm.string_of_llmodule module_
 
-  method private generate_g_decl = function 
-    | GConstDecl (name, expr) -> self#generate_g_constdecl name expr
-    | GFunDecl (name, args, body) -> self#generate_g_fundecl name args body
-
-  method private generate_g_constdecl name expr = 
-    let llvm_expr = self#generate_expr expr in
-    ignore (Llvm.define_global name llvm_expr module_)
-
-  method private generate_g_fundecl name args body =
+  method private generate_generic_fundecl name args body =
     let arg_types = Array.make (List.length args) double_t in
     let f_t = Llvm.function_type double_t arg_types in
     let f = Llvm.declare_function name f_t module_ in
@@ -51,20 +54,31 @@ object (self)
     ) (zip args (Array.to_list (Llvm.params f)));
 
     let bb = Llvm.append_block context "entry" f in
-
+    
     Llvm.position_at_end bb builder;
-    let return = self#generate_expr body in
-    ignore (Llvm.build_ret return builder);
+    
+    let llvm_body = self#generate_expr body in
+    let new_bb = Llvm.insertion_block builder in
+    Llvm.position_at_end new_bb builder;
+
+    ignore (Llvm.build_ret llvm_body builder);
+
     
     List.iter (fun arg ->
       Hashtbl.remove local_variables arg
-    ) args
+    ) args;
+    f
 
+  method private generate_g_decl = function 
+    | GConstDecl (name, expr) -> self#generate_g_constdecl name expr
+    | GFunDecl (name, args, body) -> self#generate_g_fundecl name args body
 
-  (*
-  method private generate_constdecl name type_ val_ = ()
-  method private generate_fundecl name args result body = ()
-  *)
+  method private generate_g_constdecl name expr = 
+    let llvm_expr = self#generate_expr expr in
+    ignore (Llvm.define_global name llvm_expr module_)
+
+  method private generate_g_fundecl name args body =
+    ignore (self#generate_generic_fundecl name args body)
 
   method private generate_expr = function
     | If (bexpr, expr1, expr2) -> self#generate_if bexpr expr1 expr2
@@ -114,7 +128,7 @@ object (self)
     List.iter (fun decl ->
       match decl with
       | ConstDecl (name, expr) -> Hashtbl.add local_variables name (self#generate_expr expr)
-      | FunDecl _ -> ()
+      | FunDecl (name, args, body) -> Hashtbl.add local_functions name (self#generate_l_fundecl args body)
     ) decls;
     
     let llvm_expr = self#generate_expr expr in
@@ -122,43 +136,36 @@ object (self)
     List.iter (fun decl ->
       match decl with
       | ConstDecl (name, _) -> Hashtbl.remove local_variables name
-      | FunDecl _ -> ()
+      | FunDecl (name, _, _) -> Hashtbl.remove local_functions name
     ) decls;
 
     llvm_expr
-  
-  (*
-  method private generate_if bexpr expr1 expr2 = llvm_none
-  method private generate_let decls expr = llvm_none
-  *)
   
   method private generate_binop lh op rh = 
     let lh_value = self#generate_expr lh in
     let rh_value = self#generate_expr rh in
     match op with
  
-    | "+" -> Llvm.build_fadd lh_value rh_value "addexpr" builder 
-    | "-" -> Llvm.build_fsub lh_value rh_value "subexpr" builder
-    | "*" -> Llvm.build_fmul lh_value rh_value "mulexpr" builder
-    | "/" -> Llvm.build_fdiv lh_value rh_value "divexpr" builder
+    | Add -> Llvm.build_fadd lh_value rh_value "addexpr" builder 
+    | Sub -> Llvm.build_fsub lh_value rh_value "subexpr" builder
+    | Mul -> Llvm.build_fmul lh_value rh_value "mulexpr" builder
+    | Div -> Llvm.build_fdiv lh_value rh_value "divexpr" builder
  
-    | "<"  -> Llvm.build_fadd lh_value rh_value "ltexpr" builder 
-    | "<=" -> Llvm.build_fsub lh_value rh_value "leexpr" builder
-    | ">=" -> Llvm.build_fmul lh_value rh_value "geexpr" builder
-    | ">"  -> Llvm.build_fdiv lh_value rh_value "gtexpr" builder
+    | Lt -> Llvm.build_fadd lh_value rh_value "ltexpr" builder 
+    | Le -> Llvm.build_fsub lh_value rh_value "leexpr" builder
+    | Ge -> Llvm.build_fmul lh_value rh_value "geexpr" builder
+    | Gt -> Llvm.build_fdiv lh_value rh_value "gtexpr" builder
  
-    | "&&" -> Llvm.build_fadd lh_value rh_value "andexpr" builder 
-    | "||" -> Llvm.build_fsub lh_value rh_value "orexpr" builder
-    | "==" -> Llvm.build_fmul lh_value rh_value "eqexpr" builder
-    | "!=" -> Llvm.build_fdiv lh_value rh_value "neexpr" builder
+    | And -> Llvm.build_fadd lh_value rh_value "andexpr" builder 
+    | Or  -> Llvm.build_fsub lh_value rh_value "orexpr"  builder
+    | Eq  -> Llvm.build_fmul lh_value rh_value "eqexpr"  builder
+    | Ne  -> Llvm.build_fdiv lh_value rh_value "neexpr"  builder
 
-    | any -> raise (BadOperator ("Unknown operator: " ^ any))
-
-  (*
-  method private generate_lambda args body = llvm_none
-  *)
+  method private generate_lambda args body = 
+    self#generate_generic_fundecl (lambda_name#generate) args body
   
-  method private generate_lambda _ _ = llvm_none
+  method private generate_l_fundecl args body =
+    self#generate_generic_fundecl (local_name#generate) args body
   
   method private generate_num num = 
     Llvm.const_float double_t num
@@ -174,14 +181,13 @@ object (self)
   method private generate_fun name args =
     let f = match (Llvm.lookup_function name module_) with 
     | Some f -> f 
-    | None -> raise (NoSuchFunction ("No function found with name: " ^ name)) in
+    | None -> try
+      Hashtbl.find local_functions name
+    with Not_found ->
+      raise (NoSuchFunction ("No function found with name: " ^ name)) in
+    
     let llvm_args = Array.of_list (List.map self#generate_expr args) in
     Llvm.build_call f llvm_args "callexpr" builder
 
-  method private generate_decl = function 
-    | ConstDecl (name, expr) -> self#generate_constdecl name expr
-    | FunDecl (name, args, body) -> self#generate_fundecl name args body
 
-  method private generate_constdecl _ _ = ()
-  method private generate_fundecl _ _ _ = ()
-end
+  end
