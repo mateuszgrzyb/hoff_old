@@ -45,6 +45,7 @@ g_decls:
 g_decl:
   | CONST ID ASSIGN expr { GConstDecl ($2, $4) }
   | FUN ID LC args RC LM expr RM { GFunDecl ($2, $4, $7) }
+//| expr { GExpr $1 }
   ;
 
 args: 

@@ -6,6 +6,9 @@ type module_t =
 and g_decl_t =
   | GConstDecl of string * expr_t
   | GFunDecl of string * (string list) * expr_t
+(*
+  | GExpr of expr_t
+*)
   [@@deriving show]
 
 (*

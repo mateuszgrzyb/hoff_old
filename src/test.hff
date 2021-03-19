@@ -29,16 +29,17 @@
 #     fi
 # }
 
-fun blabla(i, j) {
-    let
-       fun loc1(i) { i }
-       fun loc2(i) { loc1(i) }
-       fun loc3(i) { loc1(i) + loc2(i) }
-       fun loc4(i) { loc1(i) + loc2(i) + loc3(i) }
-    in 
-        loc1(i)
-    tel
-}
+# fun blabla(i, j) {
+#     let
+#        fun loc1(i) { i }
+#        fun loc2(i) { loc1(i) }
+#        fun loc3(i) { loc1(i) + loc2(i) }
+#        fun loc4(i) { loc1(i) + loc2(i) + loc3(i) }
+#     in 
+#         loc1(i)
+#     tel
+# }
+
 
 fun ifthenelse(i) {
     let
@@ -67,3 +68,10 @@ fun ifthenelse(i) {
         fi 
     tel
 }
+
+fun something(i) {
+    i / 3
+}
+
+
+

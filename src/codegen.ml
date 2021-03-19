@@ -22,14 +22,11 @@ class fun_name (name: string) = object
   end
 let llvm_none = Llvm.const_float (Llvm.double_type (Llvm.global_context ())) 0.0
 
-class codegen (m: module_t) = 
+class codegen (name: string) = 
 let context = Llvm.global_context () in
-(*let module_name = match m with | Mod (name, _) -> name in*)
-let module_ = Llvm.create_module context (match m with | Mod (name, _) -> name) in
+let module_ = Llvm.create_module context name in
 object (self)
   
-  val ast: module_t = m
-  (*val module_ = Llvm.create_module context module_name*)
   val builder = Llvm.builder context
   val double_t = Llvm.double_type context
   val module_begin = Llvm.global_begin module_
@@ -37,9 +34,10 @@ object (self)
   val local_functions: (string, Llvm.llvalue) Hashtbl.t = Hashtbl.create 10
   val lambda_name = new fun_name "HOFF_LAMBDA"
   val local_name = new fun_name "HOFF_LOCAL"
+  (*val expr_name = new fun_name "HOFF_EXPR"*)
 
-  method generate = match ast with | Mod (_, decl) ->
-    List.iter self#generate_g_decl decl;
+  method generate_module decls = 
+    List.iter self#generate_g_decl decls;
     match Llvm_analysis.verify_module module_ with
     | None -> Llvm.string_of_llmodule module_
     | Some error -> error
@@ -69,6 +67,9 @@ object (self)
   method private generate_g_decl = function 
     | GConstDecl (name, expr) -> self#generate_g_constdecl name expr
     | GFunDecl (name, args, body) -> self#generate_g_fundecl name args body
+    (*
+    | GExpr expr -> ignore (self#generate_eval_expr expr)
+    *)
 
   method private generate_g_constdecl name expr = 
     let llvm_expr = self#generate_expr expr in
@@ -167,6 +168,11 @@ object (self)
   
   method private generate_l_fundecl args body =
     self#generate_generic_fundecl (local_name#generate) args body
+
+  (*
+  method private generate_eval_expr expr = 
+    self#generate_generic_fundecl (expr_name#generate) [] expr
+  *)
   
   method private generate_num num = 
     Llvm.const_float double_t num
