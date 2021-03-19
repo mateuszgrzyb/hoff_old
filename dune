@@ -12,4 +12,4 @@
 (executable
  (name main)
  (preprocess (pps ppx_deriving.show))
- (libraries core llvm))
+ (libraries core llvm llvm.analysis))

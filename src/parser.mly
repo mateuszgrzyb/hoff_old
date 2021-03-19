@@ -29,23 +29,11 @@
 %token EOF
 
 %type <Ast.g_decl_t list> g_decls
-//%type <unit> decls
 
 %start g_decls
 %%
 
-/*
-decls:
-  | decl COMMA decls { () }
-  | decl { () }
-  | { () }
-  ;
-
-decl:
-  | CONST { print_endline "const" }
-  | FUN { print_endline "fun" }
-  ;
-*/
+// g_decl_t
 
 g_decls: 
   | g_decl g_decls { $1 :: $2 }

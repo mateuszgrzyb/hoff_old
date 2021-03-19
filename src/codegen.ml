@@ -38,11 +38,11 @@ object (self)
   val lambda_name = new fun_name "HOFF_LAMBDA"
   val local_name = new fun_name "HOFF_LOCAL"
 
-  method generate = match ast with
-    | Mod (_, decl) ->
-      List.iter self#generate_g_decl decl;
-      (*Llvm_analysis.assert_valid_module module_;*)
-      Llvm.string_of_llmodule module_
+  method generate = match ast with | Mod (_, decl) ->
+    List.iter self#generate_g_decl decl;
+    match Llvm_analysis.verify_module module_ with
+    | None -> Llvm.string_of_llmodule module_
+    | Some error -> error
 
   method private generate_generic_fundecl name args body =
     let arg_types = Array.make (List.length args) double_t in

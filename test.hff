@@ -43,9 +43,25 @@ fun blabla(i, j) {
 fun ifthenelse(i) {
     let
         fun true(i) { i + 1 }
-        fun false(j) { j - 1 }
+        fun false(j) { 
+            let
+                const zzz = let
+                    fun anotherone(a, b, c) {
+                        if 
+                            let const asdf = 1 in asdf + true(1) tel 
+                        then 
+                            a + b + c
+                        else 
+                            a * b * c 
+                        fi
+                    }
+                in anotherone(1, 2, 3) tel
+            in
+                zzz + 3
+            tel
+        }
     in 
-        if i 
+        if 1
         then true(i) 
         else false(i) 
         fi 
