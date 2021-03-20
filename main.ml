@@ -1,4 +1,5 @@
 
+open Typedast
 
 let parse (inx: in_channel) = 
   let lexbuf = Lexing.from_channel inx in
@@ -16,4 +17,13 @@ let compiler () =
   let code = gen#generate_module decls in
   print_endline (code)  
     
-let () = compiler ()
+let () = 
+
+  let m1 = Mod ("module1", [
+    GFunDecl (
+      true,
+      "function1", 
+      [("a", "Double"); ("b", "Double")], "Double",
+      If (Num 1., Num 2., Num 3.)
+    )
+  ]) in print_endline (show_module_t m1)
