@@ -4,12 +4,16 @@ type module_t =
   [@@deriving show]
 
 and g_decl_t =
-  | GConstDecl of string * expr_t
-  | GFunDecl of string * (string list) * expr_t
+  | GConstDecl of id_t * expr_t
+  | GFunDecl of public_t * id_t * (id_t list) * expr_t
 (*
   | GExpr of expr_t
 *)
   [@@deriving show]
+
+and public_t = bool
+
+and id_t = string
 
 (*
 and type_t = string
@@ -20,15 +24,15 @@ and expr_t =
   | If of expr_t * expr_t * expr_t
   | Let of (decl_t list) * expr_t
   | BinOp of expr_t * binop * expr_t
-  | Lambda of (string list) * expr_t
+  | Lambda of (id_t list) * expr_t
   | Num of float
-  | Const of string
-  | Fun of string * (expr_t list)
+  | Const of id_t
+  | Fun of id_t * (expr_t list)
   [@@deriving show]
 
 and decl_t = 
-  | ConstDecl of string * expr_t
-  | FunDecl of string * (string list) * expr_t
+  | ConstDecl of id_t * expr_t
+  | FunDecl of id_t * (id_t list) * expr_t
   [@@deriving show]
 
 and binop =
@@ -41,6 +45,7 @@ and binop =
 let main () =
   let m1 = Mod ("module1", [
     GFunDecl (
+      true,
       "function1", 
       ["a"; "b"],
       If (Num 1., Num 2., Num 3.)

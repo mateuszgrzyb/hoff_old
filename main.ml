@@ -8,7 +8,7 @@ let compiler () =
 
   ignore (Parsing.set_trace false);
   
-  let filename = "../src/test.hff" in
+  let filename = "../misc/test.hff" in
   let inx = Core.In_channel.create filename in
 
   let decls = parse inx in

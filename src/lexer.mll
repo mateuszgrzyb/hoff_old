@@ -9,7 +9,6 @@
 let digit = ['0'-'9']
 let upper = ['A'-'Z']
 let lower = ['a'-'z'] 
-let special = ['_' '`']
 
 let num = digit+ ('.' digit*)?
 
@@ -17,7 +16,8 @@ let num = digit+ ('.' digit*)?
 let id = ['a'-'z' '_'] ['a'-'z' 'A'-'Z' '_' '0'-'9']* 
 *)
 
-let id = (lower | special) (upper | lower | digit | special)*
+let id = lower (upper | lower | digit | '_')*
+let pid = '_' (upper | lower | digit | '_')*
 
 let white = [' ' '\t']+
 let newline = ('\n' | '\r' | "\r\n")+
@@ -74,6 +74,8 @@ rule read = parse
    | tid       { TID (lexeme lexbuf) }
 *)
    | id        { ID (lexeme lexbuf) }
+   | pid       { PID (lexeme lexbuf) }
+
    | num       { NUM (float_of_string (lexeme lexbuf)) }
    | _         { raise (LexingError ("Unexpected char: " ^ lexeme lexbuf)) }
    | eof       { EOF }

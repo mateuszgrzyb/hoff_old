@@ -3,7 +3,7 @@
   open Ast
 %}
 
-%token <string> ID
+%token <string> ID PID
 %token <float> NUM
 
 %token ASSIGN
@@ -44,7 +44,8 @@ g_decls:
 
 g_decl:
   | CONST ID ASSIGN expr { GConstDecl ($2, $4) }
-  | FUN ID LC args RC LM expr RM { GFunDecl ($2, $4, $7) }
+  | FUN ID LC args RC LM expr RM { GFunDecl (true, $2, $4, $7) }
+  | FUN PID LC args RC LM expr RM { GFunDecl (false, $2, $4, $7) }
 //| expr { GExpr $1 }
   ;
 

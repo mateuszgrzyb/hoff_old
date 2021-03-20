@@ -42,10 +42,14 @@ object (self)
     | None -> Llvm.string_of_llmodule module_
     | Some error -> error
 
-  method private generate_generic_fundecl name args body =
+  method private generate_generic_fundecl public name args body =
     let arg_types = Array.make (List.length args) double_t in
     let f_t = Llvm.function_type double_t arg_types in
-    let f = Llvm.declare_function name f_t module_ in
+    let f = Llvm.declare_function name f_t module_ in 
+    
+    if not public 
+    then Llvm.set_visibility Llvm.Visibility.Hidden f 
+    else (); 
 
     List.iter (fun (name, arg) ->
       Llvm.set_value_name name arg;
@@ -66,7 +70,7 @@ object (self)
 
   method private generate_g_decl = function 
     | GConstDecl (name, expr) -> self#generate_g_constdecl name expr
-    | GFunDecl (name, args, body) -> self#generate_g_fundecl name args body
+    | GFunDecl (public, name, args, body) -> self#generate_g_fundecl public name args body
     (*
     | GExpr expr -> ignore (self#generate_eval_expr expr)
     *)
@@ -75,8 +79,8 @@ object (self)
     let llvm_expr = self#generate_expr expr in
     ignore (Llvm.define_global name llvm_expr module_)
 
-  method private generate_g_fundecl name args body =
-    ignore (self#generate_generic_fundecl name args body)
+  method private generate_g_fundecl public name args body =
+    ignore (self#generate_generic_fundecl public name args body)
 
   method private generate_expr = function
     | If (bexpr, expr1, expr2) -> self#generate_if bexpr expr1 expr2
@@ -91,9 +95,12 @@ object (self)
     
     let if_bb = Llvm.insertion_block builder in
     let f = Llvm.block_parent if_bb in
+    let llvm_bexpr_bool = self#generate_expr bexpr in
+    (*
     let llvm_bexpr = self#generate_expr bexpr in
     let zero = Llvm.const_float double_t 0.0 in
     let llvm_bexpr_bool = Llvm.build_fcmp Llvm.Fcmp.One llvm_bexpr zero "ifblock" builder in
+    *)
     
     let then_bb = Llvm.append_block context "thenblock" f in
     Llvm.position_at_end then_bb builder;
@@ -153,21 +160,21 @@ object (self)
     | Mul -> Llvm.build_fmul lh_value rh_value "mulexpr" builder
     | Div -> Llvm.build_fdiv lh_value rh_value "divexpr" builder
  
-    | Lt -> Llvm.build_fadd lh_value rh_value "ltexpr" builder 
-    | Le -> Llvm.build_fsub lh_value rh_value "leexpr" builder
-    | Ge -> Llvm.build_fmul lh_value rh_value "geexpr" builder
-    | Gt -> Llvm.build_fdiv lh_value rh_value "gtexpr" builder
+    | Lt  -> Llvm.build_fcmp Llvm.Fcmp.Olt lh_value rh_value "ltexpr"  builder 
+    | Le  -> Llvm.build_fcmp Llvm.Fcmp.Ole lh_value rh_value "leexpr"  builder
+    | Ge  -> Llvm.build_fcmp Llvm.Fcmp.Oge lh_value rh_value "geexpr"  builder
+    | Gt  -> Llvm.build_fcmp Llvm.Fcmp.Ogt lh_value rh_value "gtexpr"  builder
  
-    | And -> Llvm.build_fadd lh_value rh_value "andexpr" builder 
-    | Or  -> Llvm.build_fsub lh_value rh_value "orexpr"  builder
-    | Eq  -> Llvm.build_fmul lh_value rh_value "eqexpr"  builder
-    | Ne  -> Llvm.build_fdiv lh_value rh_value "neexpr"  builder
+    | And -> Llvm.build_and                lh_value rh_value "andexpr" builder 
+    | Or  -> Llvm.build_or                 lh_value rh_value "orexpr"  builder
+    | Eq  -> Llvm.build_fcmp Llvm.Fcmp.Oeq lh_value rh_value "eqexpr"  builder
+    | Ne  -> Llvm.build_fcmp Llvm.Fcmp.One lh_value rh_value "neexpr"  builder
 
   method private generate_lambda args body = 
-    self#generate_generic_fundecl (lambda_name#generate) args body
+    self#generate_generic_fundecl false (lambda_name#generate) args body
   
   method private generate_l_fundecl args body =
-    self#generate_generic_fundecl (local_name#generate) args body
+    self#generate_generic_fundecl false (local_name#generate) args body
 
   (*
   method private generate_eval_expr expr = 
