@@ -29,6 +29,7 @@ object (self)
   
   val builder = Llvm.builder context
   val double_t = Llvm.double_type context
+  val bool_t = Llvm.integer_type context 1
   val module_begin = Llvm.global_begin module_
   val local_variables: (string, Llvm.llvalue) Hashtbl.t = Hashtbl.create 10
   val local_functions: (string, Llvm.llvalue) Hashtbl.t = Hashtbl.create 10
@@ -71,9 +72,6 @@ object (self)
   method private generate_g_decl = function 
     | GConstDecl (name, expr) -> self#generate_g_constdecl name expr
     | GFunDecl (public, name, args, body) -> self#generate_g_fundecl public name args body
-    (*
-    | GExpr expr -> ignore (self#generate_eval_expr expr)
-    *)
 
   method private generate_g_constdecl name expr = 
     let llvm_expr = self#generate_expr expr in
@@ -95,10 +93,16 @@ object (self)
     
     let if_bb = Llvm.insertion_block builder in
     let f = Llvm.block_parent if_bb in
-    let llvm_bexpr_bool = self#generate_expr bexpr in
+    let llvm_bexpr_bool = 
+      let llv = self#generate_expr bexpr in
+      if Llvm.type_of llv == bool_t 
+        then llv
+        else 
+          let zero = Llvm.const_float double_t 0.0 in
+          Llvm.build_fcmp Llvm.Fcmp.One llv zero "convblock" builder 
+        in
     (*
     let llvm_bexpr = self#generate_expr bexpr in
-    let zero = Llvm.const_float double_t 0.0 in
     let llvm_bexpr_bool = Llvm.build_fcmp Llvm.Fcmp.One llvm_bexpr zero "ifblock" builder in
     *)
     

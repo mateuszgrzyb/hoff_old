@@ -24,3 +24,24 @@ fiblock:                                          ; preds = %elseblock, %thenblo
   ret double %phi
 }
 
+define double @something1(double %i) {
+entry:
+  %addexpr = fadd double 4.000000e+00, %i
+  ret double %addexpr
+}
+
+define double @something2(double %i) {
+entry:
+  br i1 true, label %thenblock, label %elseblock
+
+thenblock:                                        ; preds = %entry
+  br label %fiblock
+
+elseblock:                                        ; preds = %entry
+  br label %fiblock
+
+fiblock:                                          ; preds = %elseblock, %thenblock
+  %phi = phi double [ 4.000000e+00, %thenblock ], [ 0.000000e+00, %elseblock ]
+  ret double %phi
+}
+

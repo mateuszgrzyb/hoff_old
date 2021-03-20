@@ -74,11 +74,23 @@
 # }
 
 fun fibonacci(i) {
-    if i == 0 || i == 1 then 
-        i 
-    else 
-        fibonacci(i - 1) + fibonacci(i - 2) 
-    fi
+    let 
+        const pred = i == 0 || i == 1 
+    in
+        if pred 
+        then i 
+        else fibonacci(i - 1) + fibonacci(i - 2)
+}
+
+fun something1(i) {
+    (let const ci = 4 in ci) + i
+}
+
+fun something2(i) {
+    let const ci = 4 in
+    if ci
+    then ci
+    else 0
 }
 
 

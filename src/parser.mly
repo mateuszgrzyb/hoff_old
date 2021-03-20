@@ -5,13 +5,14 @@
 
 %token <string> ID PID
 %token <float> NUM
+%token <string> OP
 
 %token ASSIGN
 %token LC RC
 %token LM RM
 
-%token IF THEN ELSE FI
-%token LET AND IN TEL
+%token IF THEN ELSE
+%token LET AND IN
 %token CONST FUN COMMA
 
 %token ADD SUB MUL DIV
@@ -19,6 +20,9 @@
 %token AND OR EQ NE
 %token LT LE GE GT
 
+
+%nonassoc LETIN
+%nonassoc IFTHENELSE
 %left AND OR
 %left EQ NE
 %left LT LE GE GT
@@ -38,7 +42,6 @@
 g_decls: 
   | g_decl g_decls { $1 :: $2 }
   | { [] }
-  ;
 
 // g_decl_t
 
@@ -47,21 +50,21 @@ g_decl:
   | FUN ID LC args RC LM expr RM { GFunDecl (true, $2, $4, $7) }
   | FUN PID LC args RC LM expr RM { GFunDecl (false, $2, $4, $7) }
 //| expr { GExpr $1 }
-  ;
 
 args: 
   | arg COMMA args { $1 :: $3 }
   | arg { $1 :: [] }
   | { [] }
-  ;
 
 arg: ID { $1 } ; 
 
 // expr_t
 
 expr: 
-  | IF expr THEN expr ELSE expr FI { If ($2, $4, $6) }
-  | LET decls IN expr TEL { Let ($2, $4) }
+//| IF expr THEN expr ELSE expr FI { If ($2, $4, $6) }
+  | IF expr THEN expr ELSE expr %prec IFTHENELSE { If ($2, $4, $6) }
+//| LET decls IN expr TEL { Let ($2, $4) }
+  | LET decls IN expr %prec LETIN { Let ($2, $4) }
   | LC expr RC { $2 }
   
   | expr ADD expr { BinOp ($1, Add, $3) }
@@ -79,28 +82,26 @@ expr:
   | expr GE expr  { BinOp ($1, Ge, $3) }
   | expr GT expr  { BinOp ($1, Gt, $3) }
 
+  | SUB expr %prec NEG { BinOp (Num(0.0), Sub, $2) }
+
   | NUM { Num $1 }
   | ID { Const $1 }
   | ID LC exprs RC { Fun ($1, $3) }
   | FUN LC args RC LM expr RM { Lambda ($3, $6) }
-  ;
 
 exprs:
   | expr COMMA exprs { $1 :: $3 }
   | expr { $1 :: [] }
   | { [] } 
-  ;
 
 // decl_t
 
 decls: 
   | decl decls { $1 :: $2 }
   | { [] }
-  ;
 
 decl:
   | CONST ID ASSIGN expr { ConstDecl ($2, $4) }
   | FUN ID LC args RC LM expr RM { FunDecl ($2, $4, $7) }
-  ;
 
 %%

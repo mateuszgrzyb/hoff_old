@@ -4,11 +4,16 @@
    open Lexing
    exception EndLoop
    exception LexingError of string
+
+
 }
 
 let digit = ['0'-'9']
 let upper = ['A'-'Z']
-let lower = ['a'-'z'] 
+let lower = ['a'-'z']
+
+let op_char = ['!' '$' '%' '&' '*' '+' '-' '.' '/' '<' '=' '>' '?' '|' '~']
+let op = op_char+
 
 let num = digit+ ('.' digit*)?
 
@@ -63,12 +68,10 @@ rule read = parse
    | "if"      { IF }
    | "then"    { THEN }
    | "else"    { ELSE }
-   | "fi"      { FI }
 
    | "let"     { LET }
    | "and"     { AND }
    | "in"      { IN }
-   | "tel"     { TEL }
 
 (*
    | tid       { TID (lexeme lexbuf) }
