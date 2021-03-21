@@ -21,6 +21,7 @@ let num = digit+ ('.' digit*)?
 let id = ['a'-'z' '_'] ['a'-'z' 'A'-'Z' '_' '0'-'9']* 
 *)
 
+let tid = upper (upper | lower | digit | '_')*
 let id = lower (upper | lower | digit | '_')*
 let pid = '_' (upper | lower | digit | '_')*
 
@@ -30,16 +31,14 @@ let newline = ('\n' | '\r' | "\r\n")+
 let comment = '#' _
 
 rule read = parse
-
    | white     { read lexbuf }
    | newline   { new_line lexbuf; read lexbuf }
    | comment   { read_comment lexbuf }
 
-(*
+   | ";;"       { SEP }
    | ":"       { COLON }
-*)
+   | "|"       { BAR }
    | "="       { ASSIGN }
-   
    | ","       { COMMA }
 
    | "("       { LC }
@@ -64,6 +63,7 @@ rule read = parse
 
    | "fun"     { FUN }
    | "const"   { CONST }
+   | "type"    { TYPE }
  
    | "if"      { IF }
    | "then"    { THEN }
@@ -73,9 +73,7 @@ rule read = parse
    | "and"     { AND }
    | "in"      { IN }
 
-(*
    | tid       { TID (lexeme lexbuf) }
-*)
    | id        { ID (lexeme lexbuf) }
    | pid       { PID (lexeme lexbuf) }
 

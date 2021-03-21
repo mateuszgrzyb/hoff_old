@@ -40,7 +40,6 @@
 #     tel
 # }
 
-
 # fun ifthenelse(i) {
 #     let
 #         fun true(i) { i + 1 }
@@ -73,25 +72,41 @@
 #     i / 3
 # }
 
-fun fibonacci(i) {
+type Name = String 
+
+type List
+    | Cons (Int, List)
+    | Nil ()
+
+fun fibonacci(i: Int): Int {
     let 
-        const pred = i == 0 || i == 1 
+        const pred: Bool = (i == 0 || i == 1)
     in
         if pred 
         then i 
         else fibonacci(i - 1) + fibonacci(i - 2)
 }
 
-fun something1(i) {
-    (let const ci = 4 in ci) + i
+fun seq(i: Double): Double {
+    fibonacci(1) ;;
+    fibonacci(2) ;;
+    fibonacci(3) ;;
+    fibonacci(4)
 }
 
-fun something2(i) {
-    let const ci = 4 in
-    if ci
-    then ci
-    else 0
-}
+# 
+# fun something1(i) {
+#     (let const ci = 4 in ci) + i
+# }
+# 
+# fun something2(i) {
+#     let 
+#         const ci = 4 
+#     in
+#         if ci then ci
+#         else if ci - 1 then ci + 1
+#         else 0
+# }
 
 
 

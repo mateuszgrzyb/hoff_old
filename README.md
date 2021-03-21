@@ -14,6 +14,7 @@ OCaml implementation of Hoff programming language
 ---
 
 ### TODO
-* Human readable lexing/parsing error with row/col position
-* Types
 * Clojures
+* Types/Pattern Matching
+* Human readable lexing/parsing error with row/col position
+* Generics
