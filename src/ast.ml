@@ -27,10 +27,16 @@ and expr_t =
   | Let of (decl_t list) * expr_t
   | BinOp of expr_t * binop * expr_t
   | Lambda of (id_t list) * expr_t
-  | Num of float
-  | Const of id_t
+  | Lit of lit_t
+  | Val of id_t
   | Fun of id_t * (expr_t list)
   [@@deriving show]
+
+and lit_t = 
+  | Bool of bool
+  | Int of int
+  | Float of float
+  | Double of float
 
 and decl_t = 
   | ConstDecl of id_t * type_t * expr_t
@@ -49,7 +55,13 @@ let main () =
   let m1 = Mod ("module1", [
     GTypeDecl ("Name", Alias("String"));
     GTypeDecl ("List", Sum([Product("Nil", []); Product("Cons", ["Int"; "List"])]));
-    GFunDecl (true, "function1", [("a", "Double"); ("b", "Double")], "Double", If (Num 1., Num 2., Num 3.));
+    
+    GFunDecl (
+      true, 
+      "function1", 
+      [("a", "Double"); ("b", "Double")], 
+      "Double", 
+      If (Lit (Bool (true)), Lit (Float (2.0)), Lit (Float (3.0))));
   ]) in print_endline (show_module_t m1)
 
 

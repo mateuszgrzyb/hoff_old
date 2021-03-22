@@ -4,8 +4,10 @@
 %}
 
 %token <string> ID PID TID
-%token <float> NUM
-%token <string> OP
+
+%token <int> INT
+%token <float> FLOAT 
+%token <bool> BOOL
 
 %token BAR ASSIGN COMMA COLON
 %token LC RC
@@ -13,7 +15,7 @@
 
 %token IF THEN ELSE
 %token LET AND IN
-%token CONST FUN TYPE
+%token VAL FUN TYPE
 
 %token ADD SUB MUL DIV
 
@@ -48,7 +50,7 @@ g_decls:
 // g_decl_t
 
 g_decl:
-  | CONST ID COLON TID ASSIGN expr { GConstDecl ($2, $4, $6) }
+  | VAL ID COLON TID ASSIGN expr { GConstDecl ($2, $4, $6) }
   | FUN ID LC args RC COLON TID LM expr RM { GFunDecl (true, $2, $4, $7, $9) }
   | FUN PID LC args RC COLON TID LM expr RM { GFunDecl (false, $2, $4, $7, $9) }
 //| ID COLON TID ASSIGN expr { GConstDecl ($1, $3, $5) }
@@ -131,7 +133,7 @@ decls:
   | { [] }
 
 decl:
-  | CONST ID COLON TID ASSIGN expr { ConstDecl ($2, $4, $6) }
+  | VAL ID COLON TID ASSIGN expr { ConstDecl ($2, $4, $6) }
   | FUN ID LC args RC COLON TID LM expr RM { FunDecl ($2, $4, $7, $9) }
 //| ID COLON TID ASSIGN expr { ConstDecl ($1, $3, $5) }
 //| ID LC args RC COLON TID LM expr RM { FunDecl ($1, $3, $6, $8) }

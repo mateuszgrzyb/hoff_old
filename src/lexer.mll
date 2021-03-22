@@ -15,7 +15,10 @@ let lower = ['a'-'z']
 let op_char = ['!' '$' '%' '&' '*' '+' '-' '.' '/' '<' '=' '>' '?' '|' '~']
 let op = op_char+
 
-let num = digit+ ('.' digit*)?
+let int_ = digit+
+let float_ = digit+ '.' digit*
+let bool_ = "True" | "False"
+
 
 (* 
 let id = ['a'-'z' '_'] ['a'-'z' 'A'-'Z' '_' '0'-'9']* 
@@ -35,7 +38,7 @@ rule read = parse
    | newline   { new_line lexbuf; read lexbuf }
    | comment   { read_comment lexbuf }
 
-   | ";;"       { SEP }
+   | ";;"      { SEP }
    | ":"       { COLON }
    | "|"       { BAR }
    | "="       { ASSIGN }
@@ -62,7 +65,7 @@ rule read = parse
    | ">"       { GT }
 
    | "fun"     { FUN }
-   | "const"   { CONST }
+   | "val"     { VAL }
    | "type"    { TYPE }
  
    | "if"      { IF }
@@ -77,7 +80,10 @@ rule read = parse
    | id        { ID (lexeme lexbuf) }
    | pid       { PID (lexeme lexbuf) }
 
-   | num       { NUM (float_of_string (lexeme lexbuf)) }
+   | int_      { INT (int_of_string (lexeme lexbuf)) }
+   | float_    { FLOAT (float_of_string (lexeme lexbuf)) }
+   | bool_     { BOOL (bool_of_string (String.lowercase_ascii (lexeme lexbuf))) }
+   
    | _         { raise (LexingError ("Unexpected char: " ^ lexeme lexbuf)) }
    | eof       { EOF }
 

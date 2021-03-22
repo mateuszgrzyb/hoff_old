@@ -4,6 +4,7 @@ exception BadOperator of string
 exception NoSuchFunction of string
 exception NoSuchConstant of string
 exception NameExists of string
+exception TypeError of string
 
 let rec zip a b = 
   match a, b with
@@ -21,15 +22,28 @@ class fun_name (name: string) = object
   end
 let llvm_none = Llvm.const_float (Llvm.double_type (Llvm.global_context ())) 0.0
 
+let rec get_llvm_type (c: Llvm.llcontext) (name: string): Llvm.lltype =
+  match name with
+  | "Bool" -> Llvm.i1_type c
+  | "Int" -> Llvm.i32_type c
+  | "Float" -> Llvm.float_type c 
+  | "Double" -> Llvm.double_type c
+  | unkn -> raise (TypeError ("Type " ^ unkn ^ " is not known"))
+
 let generate (name: string) (decls: g_decl_t list): string = 
 
   let context = Llvm.global_context () in
   let module_ = Llvm.create_module context name in
   let builder = Llvm.builder context in 
-  let double_t = Llvm.double_type context in 
-  let bool_t = Llvm.integer_type context 1 in
+  
+  let bool_t = Llvm.i1_type context in
+  let int_t = Llvm.i32_type context in
+  let float_t = Llvm.float_type context in
+  let double_t = Llvm.double_type context in
+
   let local_variables = Hashtbl.create 10 in 
   let local_functions = Hashtbl.create 10 in 
+  
   let lambda_name = new fun_name "HOFF_LAMBDA" in
   let local_name = new fun_name "HOFF_LOCAL" in 
   (*val expr_name = new fun_name "HOFF_EXPR"*)
@@ -83,9 +97,11 @@ let generate (name: string) (decls: g_decl_t list): string =
     | Fun (name, args) ->         generate_fun name args
 
   and generate_if bexpr expr1 expr2 =
-    
     let if_bb = Llvm.insertion_block builder in
     let f = Llvm.block_parent if_bb in
+    let llvm_bexpr_bool = generate_expr bexpr in
+    
+      (*
     let llvm_bexpr_bool = 
       let llv = generate_expr bexpr in
       if Llvm.type_of llv == bool_t 
@@ -94,8 +110,10 @@ let generate (name: string) (decls: g_decl_t list): string =
           let zero = Llvm.const_float double_t 0.0 in
           Llvm.build_fcmp Llvm.Fcmp.One llv zero "convblock" builder 
         in
+    *)
+    
     (*
-    let llvm_bexpr = self#generate_expr bexpr in
+    let llvm_bexpr = generate_expr bexpr in
     let llvm_bexpr_bool = Llvm.build_fcmp Llvm.Fcmp.One llvm_bexpr zero "ifblock" builder in
     *)
     
@@ -177,8 +195,24 @@ let generate (name: string) (decls: g_decl_t list): string =
   and generate_l_fundecl args body =
     generate_generic_fundecl false (local_name#generate) args body
 
-  and generate_num num = 
-    Llvm.const_float double_t num
+  and generate_lit (lit: lit_t): Llvm.llvalue = 
+    match lit with
+    | Bool b -> generate_bool b
+    | Int i -> generate_int i
+    | Float f -> generate_float f
+    | Double d -> geenrate_double d
+
+  and generate_bool (b: bool): Llvm.llvalue = 
+    Llvm.const_int bool_t (if b then 1 else 0)
+
+  and generate_int (i: int): Llvm.llvalue = 
+    Llvm.const_int int_t i
+
+  and generate_float (f: float): Llvm.llvalue = 
+    Llvm.const_float float_t f
+
+  and generate_double (d: float): Llvm.llvalue = 
+    Llvm.const_float double_t d
 
   and generate_const name = 
     match (Llvm.lookup_global name module_) with
