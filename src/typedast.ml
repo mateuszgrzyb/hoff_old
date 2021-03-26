@@ -18,9 +18,14 @@ and product_t =
 
 and public_t = bool
 and id_t = string
-and type_t = string
 and typed_id_t = (id_t * type_t)
 and constructor_t = string
+
+and type_t = 
+  | IntT
+  | FloatT
+  | BoolT
+  | StringT
 
 and expr_t =
   | If of expr_t * expr_t * expr_t
@@ -36,7 +41,7 @@ and lit_t =
   | Bool of bool
   | Int of int
   | Float of float
-  | String of string
+  | Double of float
 
 and decl_t = 
   | ConstDecl of id_t * type_t * expr_t
@@ -54,17 +59,15 @@ and binop =
 let main () =
   let m1 = Mod ("module1", [
     (*
-    GTypeDecl ("Name", Alias("String"));
+    GTypeDecl ("Name", Alias(StringT));
     GTypeDecl ("List", Sum([Product("Nil", []); Product("Cons", ["Int"; "List"])]));
     *)
     
     GFunDecl (
       true, 
       "function1", 
-      [("a", "Double"); ("b", "Double")], 
-      "Double", 
+      [("a", FloatT); ("b", FloatT)], 
+      FloatT, 
       If (Lit (Bool (true)), Lit (Float (2.0)), Lit (Float (3.0))));
   ]) in print_endline (show_module_t m1)
-
-
 

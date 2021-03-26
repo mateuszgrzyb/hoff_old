@@ -17,7 +17,8 @@ let op = op_char+
 
 let int_ = digit+
 let float_ = digit+ '.' digit*
-let bool_ = "True" | "False"
+let bool_ = "true" | "false"
+let string_ = "\"" _* "\""
 
 
 (* 
@@ -82,7 +83,8 @@ rule read = parse
 
    | int_      { INT (int_of_string (lexeme lexbuf)) }
    | float_    { FLOAT (float_of_string (lexeme lexbuf)) }
-   | bool_     { BOOL (bool_of_string (String.lowercase_ascii (lexeme lexbuf))) }
+   | bool_     { BOOL (bool_of_string (lexeme lexbuf)) }
+   | string_   { STRING (lexeme lexbuf) }
    
    | _         { raise (LexingError ("Unexpected char: " ^ lexeme lexbuf)) }
    | eof       { EOF }

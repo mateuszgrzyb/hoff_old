@@ -8,6 +8,7 @@
 %token <int> INT
 %token <float> FLOAT 
 %token <bool> BOOL
+%token <string> STRING
 
 %token BAR ASSIGN COMMA COLON
 %token LC RC
@@ -53,14 +54,7 @@ g_decl:
   | VAL ID COLON TID ASSIGN expr { GConstDecl ($2, $4, $6) }
   | FUN ID LC args RC COLON TID LM expr RM { GFunDecl (true, $2, $4, $7, $9) }
   | FUN PID LC args RC COLON TID LM expr RM { GFunDecl (false, $2, $4, $7, $9) }
-//| ID COLON TID ASSIGN expr { GConstDecl ($1, $3, $5) }
-//| ID LC args RC COLON TID LM expr RM { GFunDecl (true, $1, $3, $6, $8) }
-//| PID LC args RC COLON TID LM expr RM { GFunDecl (false, $1, $3, $6, $8) }
-//| TID ID ASSIGN expr { GConstDecl ($1, $2, $4) }
-//| TID ID LC args RC LM expr RM { GFunDecl (true, $2, $4, $1, $7) }
-//| TID PID LC args RC LM expr RM { GFunDecl (false, $2, $4, $1, $7) }
-  | TYPE TID type_ { GTypeDecl($2, $3) }
-//| expr { GExpr $1 }
+//| TYPE TID type_ { GTypeDecl($2, $3) }
 
 type_:
   | ASSIGN TID { Alias($2) }
@@ -109,12 +103,17 @@ expr:
   | expr GT expr  { BinOp ($1, Gt, $3) }
 
   | expr SEP expr { BinOp ($1, Sep, $3) }
-  | SUB expr %prec NEG { BinOp (Num(0.0), Sub, $2) }
 
-  | NUM { Num $1 }
-  | ID { Const $1 }
+  | lit { Lit ($1) }
+  | ID { Val ($1) }
   | ID LC exprs RC { Fun ($1, $3) }
   | FUN LC ids RC LM expr RM { Lambda ($3, $6) }
+
+lit:
+  | INT    { Int ($1) }
+  | FLOAT  { Float ($1) }
+  | BOOL   { Bool ($1) }
+  | STRING { String ($1) }
 
 exprs:
   | expr COMMA exprs { $1 :: $3 }

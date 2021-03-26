@@ -1,3 +1,6 @@
+
+(*
+
 open Ast
 
 exception BadOperator of string
@@ -239,3 +242,6 @@ let generate (name: string) (decls: g_decl_t list): string =
   match Llvm_analysis.verify_module module_ with
   | None -> Llvm.string_of_llmodule module_
   | Some error -> error
+
+
+*)
