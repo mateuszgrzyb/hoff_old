@@ -200,6 +200,10 @@ let generate (name: string) (decls: g_decl_t list): string =
     Llvm.build_call f llvm_args "callexpr" builder
 
   in
+
+
+  ignore (Llvm.declare_function "print" (Llvm.function_type double_t [|double_t|]) module_);
+  ignore (Llvm.declare_function "read" (Llvm.function_type double_t [||]) module_);
     
   List.iter generate_g_decl decls;
   match Llvm_analysis.verify_module module_ with
